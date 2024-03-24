@@ -1,0 +1,12 @@
+[client]
+showSidebarNavigation = false
+
+[server]
+enableStaticServing = true
+enableCORS = true
+
+[theme]
+primaryColor="#ffffff"
+backgroundColor="#000000"
+secondaryBackgroundColor="#808080"
+textColor="#ffffff"
