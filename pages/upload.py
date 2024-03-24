@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 import streamlit as st
 import os
+import io
 
 class ImagePredictor:
     def __init__(self, model_path):
@@ -66,10 +67,20 @@ st.markdown(
     )
 
 st.title("Upload an X-ray image to be analyzed")
-path = "pages/model_final.h5"  
-uploaded_files = st.file_uploader("", type=['jpg', 'jpeg', 'png'], key="file_uploader", help="Upload an X-ray image", accept_multiple_files=True)
-if uploaded_files is not None:
-    predictor = ImagePredictor(path)
+path = "pages/model_final.h5" 
+predictor = ImagePredictor(path)
+
+def example_image_loader():
+    image_paths = ['static/image1.png', 'static/image2.png', 'static/image3.png']
+    uploaded_files = []
+    for image_path in image_paths:
+        with open(image_path, 'rb') as file:
+            uploaded_files.append(io.BytesIO(file.read()))
+    return uploaded_files
+    
+
+if st.button("Load example images"):
+    uploaded_files = example_image_loader()
     prediction = predictor.predict(uploaded_files)
     if prediction == "The X-ray image is abnormal":
         st.error(prediction)
@@ -84,5 +95,27 @@ if uploaded_files is not None:
             index = i * num_columns + j
             if index < num_images:
                 cols[j].image(uploaded_files[index], width=300, caption="Uploaded X-ray image")
-else:
-    st.info("Please upload an X-ray image",  label="Upload an X-ray image")
+
+
+
+uploaded_files = st.file_uploader("You can upload your xray", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+    
+if uploaded_files is None:
+    st.info("Please upload an X-ray image")
+elif uploaded_files is not None:
+    prediction = predictor.predict(uploaded_files)
+    if prediction == "The X-ray image is abnormal":
+        st.error(prediction)
+    elif prediction == "The X-ray image is normal":
+        st.success(prediction)
+    else:
+        st.info("Please upload an X-ray image")
+    num_images = len(uploaded_files)
+    num_columns = 4
+    num_rows = -(-num_images // num_columns)
+    for i in range(num_rows):
+        cols = st.columns(num_columns)
+        for j in range(num_columns):
+            index = i * num_columns + j
+            if index < num_images:
+                cols[j].image(uploaded_files[index], width=300, caption="Uploaded X-ray image")
