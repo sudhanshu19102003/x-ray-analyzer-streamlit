@@ -4,7 +4,7 @@ from pages.model import ImagePredictor
 
 class XRayUpload:
     def __init__(self):
-        self.load_model()
+        self.predictor = ImagePredictor()
         st.set_page_config(
             page_title="X-ray Analyzer",
             page_icon="./app/static/logo.jpg",
@@ -25,9 +25,7 @@ class XRayUpload:
             unsafe_allow_html=True
         )
         st.title("Upload an X-ray image to be analyzed")
-
-    def load_model(self):
-        self.predictor = ImagePredictor()
+        
 
     def example_image_loader(self):
         image_paths = ['static/image1.png', 'static/image2.png', 'static/image3.png']
@@ -36,7 +34,7 @@ class XRayUpload:
             with open(image_path, 'rb') as file:
                 uploaded_files.append(io.BytesIO(file.read()))
         return uploaded_files
-
+    
     def load_example_images(self):
         if st.button("Load example images"):
             uploaded_files = self.example_image_loader()

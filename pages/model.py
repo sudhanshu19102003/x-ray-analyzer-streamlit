@@ -7,7 +7,7 @@ import numpy as np
 
 class ImagePredictor:
     def __init__(self):
-        self.path = "pages/model_final.h5"
+        self.path = "pages/inc.h5"
         self.model = self.load_model(self.path)
 
     def preprocess_image(self, image):
@@ -15,7 +15,7 @@ class ImagePredictor:
         # Decode image
         img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
         resized_image = cv2.resize(img, (300, 300))
-        # You may add more preprocessing steps here if required
+        resized_image = resized_image / 255.0
         return resized_image
     
     def load_model(self, model_path):
@@ -47,8 +47,9 @@ class ImagePredictor:
             preprocessed_image = self.preprocess_image(image)
             prediction = self.model.predict(np.expand_dims(preprocessed_image, axis=0))
             predictions.append(prediction)
-            mean_prediction = np.mean(predictions)
-            if mean_prediction < 0.5:
-                return "The X-ray image is abnormal"
-            else:
-                return "The X-ray image is normal"
+        mean_prediction = np.mean(predictions)
+        print(mean_prediction)
+        if mean_prediction > 0.5:
+            return "The X-ray image is abnormal"
+        elif mean_prediction < 0.5:
+            return "The X-ray image is normal"
