@@ -9,10 +9,10 @@ class ImagePredictor:
     def __init__(self):
         self.path = "pages/inc.h5"
         self.model = self.load_model(self.path)
+        self.device = '/device:GPU:0' if tf.test.is_gpu_available() else '/device:CPU:0'
 
     def preprocess_image(self, image):
         file_bytes = np.asarray(bytearray(image.read()), dtype=np.uint8)
-        # Decode image
         img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
         resized_image = cv2.resize(img, (300, 300))
         resized_image = resized_image / 255.0
@@ -28,28 +28,23 @@ class ImagePredictor:
         x = Dense(32, activation='relu')(x)
         x = Dropout(0.3)(x)
         output = Dense(1, activation='sigmoid')(x)
-        #model device to use cpu/ gpu
         model = Model(inputs=base_model.input, outputs=output)
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
         model.load_weights(model_path)
         if model is None:
             raise ValueError("Model not found")
-        #auto select device
-        if tf.test.is_gpu_available():
-            model = tf.device('/device:/gpu:0')
-        else:
-            tf.device('/device:/cpu:0')
         return model
 
-    def predict(self, image_array):
+    def predict(self, image_array, batch_size=32):
         predictions = []
-        for image in image_array:
-            preprocessed_image = self.preprocess_image(image)
-            prediction = self.model.predict(np.expand_dims(preprocessed_image, axis=0))
-            predictions.append(prediction)
+        with tf.device(self.device):
+            for i in range(0, len(image_array), batch_size):
+                batch_images = [self.preprocess_image(image) for image in image_array[i:i+batch_size]]
+                batch_predictions = self.model.predict(np.array(batch_images))
+                predictions.extend(batch_predictions)
         mean_prediction = np.mean(predictions)
-        print(mean_prediction)
         if mean_prediction > 0.5:
-            return "The X-ray image is abnormal"
+            return "The X-ray images are abnormal"
         elif mean_prediction < 0.5:
-            return "The X-ray image is normal"
+            return "The X-ray images are normal"
+
