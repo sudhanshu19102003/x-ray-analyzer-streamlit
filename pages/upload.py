@@ -29,6 +29,7 @@ def set_page_configuration():
     )
     st.title("Upload an X-ray image to be analyzed")
 
+@st.cache_resource()
 def example_image_loader():
     image_paths = ['static/image1.png', 'static/image2.png', 'static/image3.png']
     uploaded_files = []
@@ -71,7 +72,7 @@ def process_xray_images(uploaded_files, prediction):
             index = i * num_columns + j
             if index < num_images:
                 cols[j].image(uploaded_files[index], width=300, caption="Uploaded X-ray image")
-
+                
 def run_xray_upload():
     set_page_configuration()
     analyze_uploaded_images()
